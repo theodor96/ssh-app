@@ -1,10 +1,15 @@
 #include <libssh2.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+#ifdef _WIN32
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+#else
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <unistd.h>
+#endif
 
 #include <iostream>
 #include <string>
@@ -47,13 +52,13 @@ auto getEndpoint()
 auto getConnectedSocket()
 {	
     const auto socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-    if (!socketDescriptor)
+    if (0 == socketDescriptor || -1 == socketDescriptor)
     {
     	bail("failed to open socket");
     }
 
     const auto endpoint = getEndpoint();
-    if (connect(socketDescriptor, reinterpret_cast<const sockaddr*>(&endpoint), sizeof (endpoint)))
+    if (connect(socketDescriptor, reinterpret_cast<const sockaddr*>(&endpoint), sizeof (endpoint)) < 0)
     {
     	bail("failed to connect to endpoint");
     }
